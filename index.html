@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Heating System</title>
+    <style>
+        * {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body {
+            background-color: #dfe8e1;
+        }
+        button {
+            margin-left: auto;
+            margin-right: auto;
+            min-width: 80%;
+            padding: 40px 20px;
+            background-color: #100269;
+            color: white;
+            font-size: 30px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .btnContainer {
+            min-width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 40px;
+            text-align: center;
+        }
+        #lightStatus, h2 {
+            font-size: 25px;
+            text-align: center;
+        }
+    </style>
+    <script>
+        const ip = 'ADDRESS';
+        window.addEventListener("load", function() {
+            let ws = new WebSocket(`ws://${ip}/update`);
+            let slider = document.getElementById("temp");
+            ws.onopen = (event) => {
+                slider.oninput = function() {
+                    ws.send(slider.value);
+                    let label = document.getElementById("label");
+                    label.innerText = slider.value + 'F';
+                }
+                slider.value = 60;
+            }
+            
+            ws.onmessage = (event) => {
+                let unpacked = JSON.parse(event.data)
+                console.log(unpacked);
+                let slider = document.getElementById("temp");
+                slider.value = unpacked['Desired'];
+                let label = document.getElementById("label");
+                label.innerText = slider.value + 'F';
+            }
+            
+            ws.onclose = (event) => {
+                console.log("websocket closed");
+            }
+            ws.onerror = (event) => {
+                console.log("websocket error: ", event);
+            }
+            
+        });
+        
+
+
+    </script>
+  </head>
+  <body>
+    <h1>Set Temperature</h1>
+    <div class="sliderContainer">
+        <input type="range" min="60" max="80" step="1" id="temp">
+        <label style="vertical-align: top;" id="label">68F</label>
+    </div>
+  </body>
+</html>
